@@ -1,13 +1,16 @@
 import json
 import sqlite3
+import flask
 
-from flask import jsonify
+app = flask.Flask(__name__)
 
 
 def get_value_from_db(sql):
     """Функция, которая возвращает все данные из базы данных"""
 
     with sqlite3.connect("netflix.db") as connection:
+        connection.row_factory = sqlite3.Row
+
         result = connection.execute(sql).fetchall()
 
         return result
@@ -25,65 +28,97 @@ def search_by_title(title):
     '''
 
     result = get_value_from_db(sql)
+
     for item in result:
-        new_result = json.dumps(item[:-1])
-
-    return new_result
+        return dict(item)
 
 
-def search_by_date(year1, year2):
-    """Функция, которая возвращает названия фильмов в диапазоне между year1 и year2"""
 
-    sql = f'''
-           SELECT title,release_year
-           FROM netflix
-           WHERE release_year BETWEEN '{year1}' AND '{year2}'
-           LIMIT 100
-     '''
+@app.get("/movie/<title>")
+def view_title(title):
+    return app.response_class(
+        response=json.dumps(result,
+                            ensure_ascii=False,
+                            indent=4
+                            ),
+        status=200,
+        mimetype="application/json"
+    )
 
-    result = get_value_from_db(sql)
-    dict_movies = []
+def search_by_year(year):
+
+    sql=f'''
+        SELECT *      
+        FROM netflix       
+        WHERE release_year BERWEEN {year1} and {year2}
+        LIMIT 100'''
+    result=get_value_from_db(sql)
+
+    tmp=[]
     for item in result:
-        dict_movies.append(item)
+        tmp.append(dict(item))
 
-    new_result = json.dumps(dict_movies[:-1])
+    return app.response_class(tmp,
+                              ensure_ascii=False,
+                              indent=4
+                              ),
+    status = 200,
+    mimetype = "application/json"
+    )
 
-    return new_result
 
-
+@app.get("/rating/<rating>")
 def search_by_raiting(rating):
     """Функция, которая возвращает фильм по рейтингу"""
 
-    my_dict = {"children": ("G", "G"), "family": ("G", "PG", "PG-13"), "adult": ("R", "NC-17")}
+    my_dict = {"children": ("G"), "family": ("G", "PG", "PG-13"), "adult": ("R", "NC-17")}
 
     sql = f'''
            SELECT title,rating,description
            FROM netflix
-           WHERE rating in {my_dict.get(rating, "R")}'''
+           WHERE rating in {my_dict.get(rating, "NC-17")}'''
 
-    dict_movies = []
-    for item in get_value_from_db(sql=sql):
-        dict_movies.append(item)
+    result = get_value_from_db(sql)
 
-    new_result = json.dumps(dict_movies[:-1])
-    return new_result
+    tmp=[]
+    for item in result:
+        tmp.append(dict(item))
 
-def search_by_genre(genre):
+    return app.response_class    return app.response_class(tmp,
+                              ensure_ascii=False,
+                              indent=4
+                              ),
+    status = 200,
+    mimetype = "application/json"
+    )
+
+@app.get("/genre/<genre>")
+def get_by_genre(genre):
     """Функция возвращает фильм по жанру"""
 
     sql = f'''
           SELECT title,description
           FROM netflix
-          WHERE listed_in LIKE '%{genre}'
+          WHERE listed_in LIKE '%{str(genre)[1:]}'
           ORDER BY release_year DESC
           LIMIT 10
     '''
-    dict_movies = []
-    for item in get_value_from_db(sql=sql):
-        dict_movies.append(item)
 
-    new_result = json.dumps(dict_movies[:-1])
-    return new_result
+    result = get_value_from_db(sql)
+
+    tmp = []
+    for item in result:
+        tmp.append(dict(item))
+
+    return app.response_class
+    return app.response_class(tmp,
+                              ensure_ascii=False,
+                              indent=4
+                              ),
+    status = 200,
+    mimetype = "application/json"
+    )
+
 
 def search_double_name(name1,name2):
     """Функция возвращает актеров, которые играли больше двух раз с введенными актерами"""
@@ -95,17 +130,25 @@ def search_double_name(name1,name2):
           ORDER BY release_year DESC
     '''
 
-    result = get_value_from_db(sql=sql)
-    actors_all = []
+    result = get_value_from_db(sql)
 
-    # Собираем полный список всех актеров
-    for movie in result:
-        actors = movie[0].split(", ")
-        actors_all.extend(actors)
+    result = get_value_from_db(sql)
 
-    # Оставляем тех, кто встречается дважды
-    actors_seen_twice = {actor for actor in actors_all if actors_all.count(actor) > 2} - {name1, name2}
-    print(actors_seen_twice)
+    tmp = []
+    names_dcit = {}
+    for item in result:
+        names = set(dict(item).get("cast").split(", ")) - {(name1, name2)}
+
+        for name in names:
+            names_dict[name.string()] = names_dcit.get(name.strip(), 0) + 1
+
+            print(names_dcit)
+            for key, value in names_dcit.items():
+                if value > 2:
+                  tmp.append(key)
+
+    return tmp
+
 
 def step_6(type,year,genre):
     """Функция, которая принимает три параметра и возвращает по ним фильмы"""
@@ -117,13 +160,18 @@ def step_6(type,year,genre):
           AND release_year = '{year}'
           AND listed_in LIKE '%{genre}%'
     '''
-    dict_movies = []
-    for item in get_value_from_db(sql=sql):
-        dict_movies.append(item)
+    result = get_value_from_db(sql)
 
-    new_result = json.dumps(dict_movies[:-1])
-    return new_result
+    tmp=[]
+    for item in result:
+        tmp.append(dict(item))
 
-"""Проверяем наши функции для шагов 5 и 6"""
-search_double_name('Rose McIver','Ben Lamb')
-print(step_6('Movie','2021','Documentaries'))
+    return json.dumps(tmp,
+                      ensure_ascii=False
+                      indent=4
+                      )
+
+if __name__ = '__main__':
+app.run(host='localhost',port=8000,debug=True)
+
+       
