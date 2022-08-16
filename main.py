@@ -45,12 +45,13 @@ def view_title(title):
         mimetype="application/json"
     )
 
-def search_by_year(year):
+@app.get("/movie/<int:year1>/to/<int:year2>")
+def search_by_year(year1,year2):
 
     sql=f'''
         SELECT *      
         FROM netflix       
-        WHERE release_year BERWEEN {year1} and {year2}
+        WHERE release_year BETWEEN {year1} and {year2}
         LIMIT 100'''
     result=get_value_from_db(sql)
 
@@ -64,7 +65,7 @@ def search_by_year(year):
                               ),
     status = 200,
     mimetype = "application/json"
-    )
+    
 
 
 @app.get("/rating/<rating>")
@@ -84,13 +85,13 @@ def search_by_raiting(rating):
     for item in result:
         tmp.append(dict(item))
 
-    return app.response_class    return app.response_class(tmp,
+    return app.response_class(tmp,
                               ensure_ascii=False,
                               indent=4
                               ),
     status = 200,
     mimetype = "application/json"
-    )
+    
 
 @app.get("/genre/<genre>")
 def get_by_genre(genre):
@@ -117,7 +118,7 @@ def get_by_genre(genre):
                               ),
     status = 200,
     mimetype = "application/json"
-    )
+    
 
 
 def search_double_name(name1,name2):
@@ -167,11 +168,11 @@ def step_6(type,year,genre):
         tmp.append(dict(item))
 
     return json.dumps(tmp,
-                      ensure_ascii=False
+                      ensure_ascii=False,
                       indent=4
                       )
 
-if __name__ = '__main__':
-app.run(host='localhost',port=8000,debug=True)
+if __name__ == '__main__':
+  app.run(host='localhost',port=8000,debug=True)
 
        
