@@ -28,9 +28,12 @@ def search_by_title(title):
     '''
 
     result = get_value_from_db(sql)
-
+    tmp = []
     for item in result:
-        return dict(item)
+        tmp.append(dict(item))
+
+from flask import jsonify
+return jsonify(tmp)
 
 
 
@@ -59,14 +62,10 @@ def search_by_year(year1,year2):
     for item in result:
         tmp.append(dict(item))
 
-    return app.response_class(tmp,
-                              ensure_ascii=False,
-                              indent=4
-                              ),
-    status = 200,
-    mimetype = "application/json"
+from flask import jsonify
+return jsonify(tmp)
     
-
+    
 
 @app.get("/rating/<rating>")
 def search_by_raiting(rating):
@@ -85,12 +84,8 @@ def search_by_raiting(rating):
     for item in result:
         tmp.append(dict(item))
 
-    return app.response_class(tmp,
-                              ensure_ascii=False,
-                              indent=4
-                              ),
-    status = 200,
-    mimetype = "application/json"
+from flask import jsonify
+return jsonify(tmp)
     
 
 @app.get("/genre/<genre>")
@@ -111,15 +106,9 @@ def get_by_genre(genre):
     for item in result:
         tmp.append(dict(item))
 
-    return app.response_class
-    return app.response_class(tmp,
-                              ensure_ascii=False,
-                              indent=4
-                              ),
-    status = 200,
-    mimetype = "application/json"
+from flask import jsonify
+return jsonify(tmp)
     
-
 
 def search_double_name(name1,name2):
     """Функция возвращает актеров, которые играли больше двух раз с введенными актерами"""
@@ -131,25 +120,15 @@ def search_double_name(name1,name2):
           ORDER BY release_year DESC
     '''
 
-    result = get_value_from_db(sql)
 
     result = get_value_from_db(sql)
 
     tmp = []
-    names_dcit = {}
     for item in result:
-        names = set(dict(item).get("cast").split(", ")) - {(name1, name2)}
+        tmp.append(dict(item))
 
-        for name in names:
-            names_dict[name.string()] = names_dcit.get(name.strip(), 0) + 1
-
-            print(names_dcit)
-            for key, value in names_dcit.items():
-                if value > 2:
-                  tmp.append(key)
-
-    return tmp
-
+from flask import jsonify
+return jsonify(tmp)
 
 def step_6(type,year,genre):
     """Функция, которая принимает три параметра и возвращает по ним фильмы"""
@@ -167,10 +146,10 @@ def step_6(type,year,genre):
     for item in result:
         tmp.append(dict(item))
 
-    return json.dumps(tmp,
-                      ensure_ascii=False,
-                      indent=4
-                      )
+
+from flask import jsonify
+return jsonify(tmp)
+    
 
 if __name__ == '__main__':
   app.run(host='localhost',port=8000,debug=True)
