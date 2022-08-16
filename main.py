@@ -32,6 +32,7 @@ def search_by_title(title):
     for item in result:
         tmp.append(dict(item))
 
+
 from flask import jsonify
 return jsonify(tmp)
 
@@ -39,14 +40,16 @@ return jsonify(tmp)
 
 @app.get("/movie/<title>")
 def view_title(title):
-    return app.response_class(
-        response=json.dumps(result,
-                            ensure_ascii=False,
-                            indent=4
-                            ),
-        status=200,
-        mimetype="application/json"
-    )
+    sql = f'''SELECT title, country, release_year, listed_in as genre, description
+    WHERE title = '{title}'
+    ORDER BY release_year DESC
+    limit 1'''
+
+    result = get_value_from_db(sql)
+
+    for item in result:
+        return dict(item)
+
 
 @app.get("/movie/<int:year1>/to/<int:year2>")
 def search_by_year(year1,year2):
@@ -61,6 +64,7 @@ def search_by_year(year1,year2):
     tmp=[]
     for item in result:
         tmp.append(dict(item))
+
 
 from flask import jsonify
 return jsonify(tmp)
@@ -77,12 +81,12 @@ def search_by_raiting(rating):
            SELECT title,rating,description
            FROM netflix
            WHERE rating in {my_dict.get(rating, "NC-17")}'''
-
     result = get_value_from_db(sql)
 
     tmp=[]
     for item in result:
         tmp.append(dict(item))
+
 
 from flask import jsonify
 return jsonify(tmp)
@@ -106,6 +110,7 @@ def get_by_genre(genre):
     for item in result:
         tmp.append(dict(item))
 
+
 from flask import jsonify
 return jsonify(tmp)
     
@@ -126,6 +131,7 @@ def search_double_name(name1,name2):
     tmp = []
     for item in result:
         tmp.append(dict(item))
+
 
 from flask import jsonify
 return jsonify(tmp)
